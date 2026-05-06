@@ -1,0 +1,48 @@
+name: SAST Security Scan
+
+on:
+push:
+branches: [main]
+pull_request:
+branches: [main]
+
+jobs:
+bandit-scan:
+name: Bandit - Python SAST
+runs-on: ubuntu-latest
+
+steps:
+- name: Checkout code
+uses: actions/checkout@v3
+
+- name: Set up Python
+uses: actions/setup-python@v4
+with:
+python-version: '3.10'
+
+- name: Install Bandit
+run: pip install bandit
+
+- name: Run Bandit scan
+run: |
+bandit -r . -f json -o bandit-report.json || true
+bandit -r . -f txt
+
+- name: Upload Bandit report
+uses: actions/upload-artifact@v3
+with:
+name: bandit-report
+path: bandit-report.json
+
+semgrep-scan:
+name: Semgrep - SAST
+runs-on: ubuntu-latest
+
+steps:
+- name: Checkout code
+uses: actions/checkout@v3
+
+- name: Run Semgrep
+uses: returntocorp/semgrep-action@v1
+with:
+config: p/python
